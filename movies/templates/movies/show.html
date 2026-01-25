@@ -40,7 +40,7 @@
         <hr />
         <ul class="list-group">
           {% for review in template_data.reviews %}
-          <li class="list-group-item pb-3 pt-3">
+          <li class="list-group-item pb-3 pt-3" style="word-wrap: break-word;">
             <h5 class="card-title">
               Review by {{ review.user.username }}
             </h5>
