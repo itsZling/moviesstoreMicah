@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Movie, Review
+from .models import Movie, Review, Report
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
@@ -65,3 +65,34 @@ def delete_review(request, id, review_id):
     review = get_object_or_404(Review, id=review_id, user=request.user)
     review.delete()
     return redirect('movies.show', id=id)
+
+@login_required
+def create_report(request, id, review_id):
+    review = get_object_or_404(Review, id=review_id)
+    if request.user == review.user:
+        return redirect('movies.show', id=id)
+    
+    if request.method == 'GET':
+        template_data = {}
+        template_data['title'] = 'Report Review'
+        return render(request, 'movies/create_report.html',
+            {'template_data': template_data})
+    if request.method == 'POST' and request.POST['comment'] != '':
+        report = Report()
+        report.comment = request.POST['comment']
+        report.user = request.user
+
+        reviewCopy = Review()
+        reviewCopy.comment = review.comment
+        reviewCopy.movie = review.movie
+        reviewCopy.date = review.date
+        reviewCopy.user = review.user
+        
+        reviewCopy.save()
+        report.review = reviewCopy
+        review.delete()
+        
+        report.save()
+        return redirect('movies.show', id=id)
+    else:
+        return redirect('movies.show', id=id)
