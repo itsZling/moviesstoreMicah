@@ -4,8 +4,8 @@ from movies.models import Movie
 from .utils import calculate_cart_total
 from .models import Order, Item
 from django.contrib.auth.decorators import login_required
+from map.models import location # Import the location model
 
-# Create your views here.
 @login_required
 def purchase(request):
     cart = request.session.get('cart', {})
@@ -20,6 +20,13 @@ def purchase(request):
     order = Order()
     order.user = request.user
     order.total = cart_total
+
+    # Capture the location from the form submission
+    if request.method == 'POST':
+        location_id = request.POST.get('location_id')
+        if location_id:
+            order.location = get_object_or_404(location, id=location_id)
+            
     order.save()
 
     for movie in movies_in_cart:
@@ -49,6 +56,17 @@ def index(request):
     template_data['title'] = 'Cart'
     template_data['movies_in_cart'] = movies_in_cart
     template_data['cart_total'] = cart_total
+    
+    # Group locations by state
+    all_locations = location.objects.all().order_by('state', 'city')
+    states_dict = {}
+    for loc in all_locations:
+        if loc.state not in states_dict:
+            states_dict[loc.state] = []
+        states_dict[loc.state].append({'id': loc.id, 'city': loc.city})
+        
+    template_data['states_dict'] = states_dict
+    
     return render(request, 'cart/index.html', {'template_data': template_data})
 
 def add(request, id):

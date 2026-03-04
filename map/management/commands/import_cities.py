@@ -17,7 +17,7 @@ class Command(BaseCommand):
                 reader = csv.DictReader(file)
                 
                 for row in reader:
-                    city, created = City.objects.get_or_create(
+                    city, created = location.objects.get_or_create(
                         city=row['city'],
                         state=row['state'],
                         defaults={

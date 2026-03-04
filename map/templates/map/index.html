@@ -1,52 +1,51 @@
 {% extends 'base.html' %}
 {% block content %}
-<header class="masthead bg-index text-white text-center py-4">
-  <div class="container d-flex align-items-center flex-column pt-2">
-    <h2>Movies Store</h2>
-    <p>Welcome to the Map page!</p>
-  </div>
-</header>
 <div class="p-3">
   <div class="container">
     <div class="row mt-3">
-      <div class="col mx-auto text-center mb-3">
-        <h4>Welcome to the best movie store!!</h4>
+      <div class="row mx-auto text-center mb-3">
+        <h4>Welcome to the Popularity Map page!!</h4>
+        <hr>
 
-        <div class="col-md-7 d-flex flex-column align-items-center">
-          <div id="map" style="height: 600px; width: 100%"></div>
-          {{ cities|json_script:"cities_json" }}
+        <div class="container mb-3">
+          <div class="row justify-content-center">
+            <div class="col-md-7 d-flex flex-column">
+              <div id="map" style="height: 600px; width: 100%"></div>
+              {{ cities|json_script:"cities_json" }}
+            </div>
+
+          </div>
+
         </div>
-
-
       </div>
     </div>
   </div>
 </div>
 
 <script> 
-    var map = L.map('map').setView([33.78, -84.4], 13); // Centered on GT
+    var map = L.map('map').setView([33.78, -84.4], 5); // Centered on GT
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     
-    // Example marker
-    var marker = L.marker([33.78, -84.4]).addTo(map);
-    marker.bindPopup("<b>Hello!</b><br>This is Georgia Tech!." ).openPopup();
-    
+    // Parse the data passed from our view
     let cities = JSON.parse(document.getElementById('cities_json').textContent);
     
-    //for 300 cities, add a marker to the map
+    // Add markers only for cities that have trending purchase data
     cities.forEach(city => {
         let marker = L.marker([city.latitude, city.longitude]).addTo(map);
-        marker.bindPopup(`<b>${city.city}, ${city.state}, ${city.country}</b><br>(${city.latitude}, ${city.longitude})`);
-        //let polyline = L.polyline([[33.78, -84.4], [city.latitude, city.longitude]], {color: 'red'}).addTo(map);
-        }); 
         
-    map.on('click', function(event) {
-        var lat = event.latlng.lat;
-        var lng = event.latlng.lng;
-        var marker = L.marker([lat, lng]).addTo(map);
-    });
+        // Format the popup to show the trending movie and purchase counts
+        let popupContent = `
+            <b>${city.city}, ${city.state}</b><br>
+            <hr style="margin: 5px 0;">
+            🔥 <b>Trending Movie:</b> ${city.top_movie}<br>
+            📈 <b>Local Purchases:</b> ${city.purchase_count}
+        `;
+        
+        marker.bindPopup(popupContent);
+    }); 
 </script>
+
 {% endblock content %}

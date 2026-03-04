@@ -35,17 +35,59 @@
     </div>
     <div class="row">
       <div class="text-end">
-        <a class="btn btn-outline-secondary mb-2"><b>Total
-          to pay:</b> ${{ template_data.cart_total }}</a>
+        <a class="btn btn-outline-secondary mb-2"><b>Total to pay:</b> ${{ template_data.cart_total }}</a>
+        
         {% if template_data.movies_in_cart|length > 0 %}
-        <a href="{% url 'cart.purchase' %}" class="btn bg-dark text-white mb-2">
-          Purchase
-        </a>
+        <form action="{% url 'cart.purchase' %}" method="POST" class="d-inline">
+          {% csrf_token %}
+          
+          <select id="state_select" class="form-select d-inline w-auto mb-2" required>
+            <option value="" disabled selected>Select State...</option>
+            {% for state in template_data.states_dict.keys %}
+              <option value="{{ state }}">{{ state }}</option>
+            {% endfor %}
+          </select>
+
+          <select name="location_id" id="city_select" class="form-select d-inline w-auto mb-2" required disabled>
+            <option value="" disabled selected>Select City...</option>
+          </select>
+
+          <button type="submit" class="btn bg-dark text-white mb-2">Purchase</button>
+        </form>
+
         <a href="{% url 'cart.clear' %}">
           <button class="btn btn-danger mb-2">
             Remove all movies from Cart
           </button>
         </a>
+        
+        {{ template_data.states_dict|json_script:"states-data" }}
+        
+        <script>
+            const stateSelect = document.getElementById('state_select');
+            const citySelect = document.getElementById('city_select');
+            const statesData = JSON.parse(document.getElementById('states-data').textContent);
+
+            stateSelect.addEventListener('change', function() {
+                const selectedState = this.value;
+                const cities = statesData[selectedState] || [];
+                
+                // Reset and enable city dropdown
+                citySelect.innerHTML = '<option value="" disabled selected>Select City...</option>';
+                
+                if (cities.length > 0) {
+                    citySelect.disabled = false;
+                    cities.forEach(cityData => {
+                        const option = document.createElement('option');
+                        option.value = cityData.id;
+                        option.textContent = cityData.city;
+                        citySelect.appendChild(option);
+                    });
+                } else {
+                    citySelect.disabled = true;
+                }
+            });
+        </script>
         {% endif %}
       </div>
     </div>
